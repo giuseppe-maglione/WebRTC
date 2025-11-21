@@ -1,3 +1,10 @@
+import express from "express";
+import { initDbPool } from "./src/services/db.js";
+import dotenv from "dotenv";
+dotenv.config();
+
+await initDbPool(); // inizializza la pool
+
 const express = require("express");
 const app = express();
 const path = require("path");
