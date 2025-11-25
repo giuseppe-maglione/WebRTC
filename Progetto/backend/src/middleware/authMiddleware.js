@@ -1,38 +1,56 @@
-const bcrypt = require("bcrypt");
-
-// SIMULAZIONE DATABASE
-const fakeUser = [{
-    id: 1,
-    username: "admin",
-    passwordHash: "$2b$10$uP/NT.3OER3wXXeN6fPjeOdiB2r2AuP8WH9fMck/4cM/rzYXRTxQW" // "password"
-}];
+import bcrypt from "bcrypt";
+import { userModel } from "../models/userModel.js";
 
 // LOGIN
-exports.login = async (req, res) => {
-    const { username, password } = req.body;
+export const login = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        if (!username || !password)
+            return res.status(400).json({ error: "Inserisci username e password" });
 
-    if (!username || !password)
-        return res.status(400).json({ error: "Inserisci username e password" });
+        const user = await userModel.findByUsername(username);
+        if (!user)
+            return res.status(401).json({ error: "Username errato" });
 
-    // Cerca utente (qui dal fake DB)
-    const user = fakeUser.find(u => u.username === username);
+        const correct = await bcrypt.compare(password, user.password_hash);
+        if (!correct)
+            return res.status(401).json({ error: "Password errata" });
 
-    if (!user)
-        return res.status(401).json({ error: "Username errato" });
+        req.session.userId = user.id;
 
-    const correct = await bcrypt.compare(password, user.passwordHash);
+        res.json({ message: "Login effettuato", userId: user.id });
+    } catch (err) {
+        console.error("LOGIN ERROR:", err);
+        res.status(500).json({ error: "Errore interno server" });
+    }
+};
 
-    if (!correct)
-        return res.status(401).json({ error: "Password errata" });
+// REGISTER
+export const register = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        if (!username || !password)
+            return res.status(400).json({ error: "Inserisci username e password" });
 
-    // Salviamo in sessione
-    req.session.userId = user.id;
+        const existing = await userModel.findByUsername(username);
+        if (existing)
+            return res.status(400).json({ error: "Username già esistente" });
 
-    res.json({ message: "Login effettuato", userId: user.id });
+        const passwordHash = await bcrypt.hash(password, 10);
+        const newUser = await userModel.createUser(username, passwordHash);
+
+        req.session.userId = newUser.id;
+
+        res.json({ message: "Registrazione completata", userId: newUser.id });
+
+    } catch (err) {
+        console.error("REGISTER ERROR:", err);
+        res.status(500).json({ error: "Errore interno server" });
+    }
 };
 
 // LOGOUT
-exports.logout = (req, res) => {
+export const logout = (req, res) => {
     req.session.destroy(err => {
         if (err) return res.status(500).json({ error: "Errore nel logout" });
         res.clearCookie("connect.sid");
@@ -40,47 +58,13 @@ exports.logout = (req, res) => {
     });
 };
 
-// REGISTER
-exports.register = async (req, res) => {
-    const { username, password } = req.body;
+// MIDDLEWARE
+export const requireLogin = (req, res, next) => {
+    if (req.session.userId) return next();
 
-    if (!username || !password)
-        return res.status(400).json({ error: "Inserisci username e password" });
-
-    const existing = fakeUser.find(u => u.username === username);
-
-    if (existing)
-        return res.status(400).json({ error: "Username già esistente" });
-
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    const newUser = {
-        id: fakeUser.length + 1,
-        username,
-        passwordHash
-    };
-
-    fakeUser.push(newUser);
-
-    // login automatico (opzionale)
-    req.session.userId = newUser.id;
-
-    res.json({ message: "Registrazione completata", userId: newUser.id });
-};
-
-// MIDDLEWARE DI PROTEZIONE
-exports.requireLogin = (req, res, next) => {
-
-    if (req.session.userId) {
-        return next();
-    }
-
-    // Se il browser si aspetta HTML → redirect
     const acc = req.headers.accept || "";
     if (acc.includes("text/html")) {
         return res.redirect("/login");
     }
-
-    // Altrimenti API → JSON
     return res.status(401).json({ error: "Devi essere loggato" });
 };
