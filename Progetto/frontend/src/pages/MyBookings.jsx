@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiDelete } from "../api";
-import { Link } from "react-router-dom";
-
+import { Link } from "react-router-dom";        // usato per linkare verso la modifica di una prenotazione
 export default function MyBookings() {
-    const [list, setList] = useState([]);
+    const [list, setList] = useState([]);       // list conterrà l'array di oggetti prenotazione recuperati dal server
 
     async function load() {
         const res = await apiGet("/api/prenotazioni");

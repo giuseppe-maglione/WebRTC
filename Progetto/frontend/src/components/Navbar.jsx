@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+// navbar è un componente standard in un'applicazione web che rappresenta la barra di nagivazione
+
 export default function Navbar() {
-    const { user, logout } = useAuth();
+    const { user, logout } = useAuth();     // prende i valori user e logout dal context
 
     return (
         <nav>

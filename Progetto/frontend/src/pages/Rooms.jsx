@@ -4,12 +4,13 @@ import { apiGet } from "../api";
 export default function Rooms() {
 const [start, setStart] = useState("");
     const [end, setEnd] = useState("");
-    const [rooms, setRooms] = useState([]);
-    const [error, setError] = useState("");
+    const [rooms, setRooms] = useState([]);     // array che conterrà l'elenco delle aule restituite dal server
+    const [error, setError] = useState(""); 
 
     async function loadRooms() {
         setError("");
 
+        // validazione frontend
         if (!start || !end) {
             setError("Inserisci sia l'orario di inizio che di fine.");
             return;
@@ -20,7 +21,7 @@ const [start, setStart] = useState("");
                 `/api/aule-disponibili?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`
             );
 
-            setRooms(res.rooms || []);
+            setRooms(res.rooms || []);      // aggiorna lo stato di rooms con l'elenco delle aule restituite dal server
         } catch (err) {
             console.error(err);
             setError("Errore nel caricamento delle aule.");

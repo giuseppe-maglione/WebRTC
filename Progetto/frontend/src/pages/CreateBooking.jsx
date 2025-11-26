@@ -1,22 +1,27 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiPost } from "../api";
 
 export default function CreateBooking() {
   const nav = useNavigate();
   const [roomId, setRoomId] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState("");   // stato per memorizzare eventuali messaggi di errore restituiti dal server
 
+  // funzione asincrona che gestisce l'invio dei dati del form al backend per creare la nuova prenotazione
   const handleCreate = async (e) => {
     e.preventDefault();
 
+    const res = apiPost("/api/crea-prenotazione", { roomId, startTime, endTime });
+    /* COME FACEVAMO PRIMA
     const res = await fetch("/api/crea-prenotazione", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ roomId, startTime, endTime }),
     });
+    */
 
     const data = await res.json();
 

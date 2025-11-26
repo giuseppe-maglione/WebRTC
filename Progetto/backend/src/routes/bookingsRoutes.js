@@ -11,8 +11,12 @@ module.exports = function (app) {
         .post(auth.requireLogin, bookings.createBooking);
 
     // LISTA PRENOTAZIONI UTENTE
-    app.route("/api/mie-prenotazioni")
+    app.route("/api/prenotazioni")
         .get(auth.requireLogin, bookings.getUserBookings);
+
+    // PRENOTAZIONE DELL'UTENTE
+    app.route("/api/prenotazioni/:id")
+        .get(auth.requireLogin, bookings.getUserBookingById);
 
     // MODIFICA PRENOTAZIONE
     app.route("/api/prenotazioni/:id")

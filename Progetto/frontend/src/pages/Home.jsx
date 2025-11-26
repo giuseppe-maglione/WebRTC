@@ -1,4 +1,4 @@
-export default function Home() {
+export default function Home() {       
     return (
         <div>
             <h1>Benvenuto nel sistema prenotazioni aule</h1>
