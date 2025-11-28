@@ -50,18 +50,21 @@ export const listRooms = async (req, res) => {
 
 
 // PRENOTAZIONE DELL'UTENTE
-// TO BE DONE:
 export const getUserBookingById = async (req, res) => {
     try {
-        const userId = req.session.userId;
+        const bookingId = req.params.id;
+        const userId    = req.session.Id;
+        const booking   = await bookingModel.getBookingById(bookingId);
 
-        const bookings = await bookingModel.getBookingsByUser(userId);
+        if (booking.user_id !== userId) {
+            return res.status(403).json({ error: "Non puoi visualizzare questa prenotazione" });
+        }
 
-        res.json({ bookings });
+        res.json({ booking });
 
     } catch (err) {
-        console.error("Errore in getUserBookings:", err);
-        res.status(500).json({ error: "Errore nel recupero delle prenotazioni" });
+        console.error("Errore in getUserBookingById:", err);
+        res.status(500).json({ error: "Errore nel recupero della prenotazione" });
     }
 };
 
