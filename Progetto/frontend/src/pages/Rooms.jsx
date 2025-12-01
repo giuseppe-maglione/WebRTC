@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiGet } from "../api";
 
 export default function Rooms() {
-const [start, setStart] = useState("");
+    const nav = useNavigate();
+    const [start, setStart] = useState("");
     const [end, setEnd] = useState("");
     const [rooms, setRooms] = useState([]);     // array che conterrà l'elenco delle aule restituite dal server
     const [error, setError] = useState(""); 
@@ -28,12 +30,23 @@ const [start, setStart] = useState("");
         }
     }
 
+    // funzione per gestire il click su "Prenota"
+    const handleBookClick = (roomId) => {
+        // naviga verso la pagina di creazione passando i dati nello 'state'
+        nav("/create-booking", {
+            state: {
+                preSelectedRoom: roomId,
+                preSelectedStart: start,
+                preSelectedEnd: end
+            }
+        });
+    };
+
     return (
         <div>
             <h2>Verifica disponibilità aule</h2>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "300px" }}>
-                
                 <label>Data / Ora inizio</label>
                 <input
                     type="datetime-local"
@@ -57,15 +70,24 @@ const [start, setStart] = useState("");
 
             <h3>Risultati</h3>
 
-            {rooms.length === 0 && <p>Nessuna aula trovata...</p>}
+            {rooms.length === 0 && <p>Nessuna aula trovata (o nessuna ricerca effettuata).</p>}
 
             <ul>
                 {rooms.map((r) => (
-                    <li key={r.id} style={{ marginBottom: "10px" }}>
+                    <li key={r.id} style={{ marginBottom: "15px", borderBottom: "1px solid #eee", paddingBottom: "10px" }}>
                         <strong>{r.name}</strong> (ID: {r.id}) – {r.location} – capienza: {r.capacity}  
                         <br />
+                        
                         {r.available ? (
-                            <span style={{ color: "green" }}>Disponibile</span>
+                            <div style={{ marginTop: "5px" }}>
+                                <span style={{ color: "green", fontWeight: "bold", marginRight: "10px" }}>
+                                    Disponibile
+                                </span>
+                                {/* pulsante che appare solo se disponibile */}
+                                <button onClick={() => handleBookClick(r.id)}>
+                                    Prenota questa aula
+                                </button>
+                            </div>
                         ) : (
                             <span style={{ color: "red" }}>Occupata</span>
                         )}

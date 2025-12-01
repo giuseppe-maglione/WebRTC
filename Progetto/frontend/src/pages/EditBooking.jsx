@@ -9,7 +9,9 @@ export default function EditBooking() {
   const [booking, setBooking] = useState(null);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [msg, setMsg] = useState("");
+
+  const [errorMsg, setErrorMsg] = useState("");   // messaggio rosso (errore)
+  const [successMsg, setSuccessMsg] = useState(""); // messaggio verde (successo)
   
   // questo codice prende i dati della prenotazione originale (non quelli modificati) 
   useEffect(() => {
@@ -31,29 +33,37 @@ export default function EditBooking() {
         }
       } catch (err) {
         console.error("Errore caricamento:", err);
-        setMsg("Impossibile caricare la prenotazione.");
+        setErrorMsg("Impossibile caricare la prenotazione.");
       }
     }
-
     loadData();
   }, [id]); // si riattiva solo se cambia l'ID
 
-    // funzione che gestisce l'invio delle modifiche al server
+  // funzione che gestisce l'invio delle modifiche al server
   const handleUpdate = async (e) => {
     e.preventDefault();
-    setMsg(""); // resetta errori precedenti
+    
+    // resettiamo i messaggi precedenti
+    setErrorMsg("");
+    setSuccessMsg("");
 
     const res = await apiPut(`/api/prenotazioni/${id}`, { startTime, endTime });
 
     if (res.error) {
-      setMsg(res.error);
+      setErrorMsg(res.error);
     } else {
-      nav("/my-bookings");
+      // successo
+      setSuccessMsg("Modifica salvata con successo! Reindirizzamento...");      
+      // attesa di 2 secondi e poi reindirizzamento
+      setTimeout(() => {
+        nav("/my-bookings");
+      }, 2000);
     }
   };
 
-  // poiché il caricamento dei dati è asincrono, è necessario mostrare un messaggio di caricamento finché lo stato booking non viene popolato
-  if (!booking) return <p>Caricamento in corso...</p>;
+  // poiché il caricamento dei dati è asincrono, 
+  // è necessario mostrare un messaggio di caricamento finché lo stato booking non viene popolato
+  if (!booking && !errorMsg) return <p>Caricamento in corso...</p>;
 
   return (
     <div>
@@ -80,18 +90,30 @@ export default function EditBooking() {
           />
         </div>
 
-        <button type="submit">Salva modifiche</button>
+        {/* disabilita il bottone se c'è un successo in corso */}
+        <button type="submit" disabled={!!successMsg}>
+            {successMsg ? "Salvato!" : "Salva modifiche"}
+        </button>
         
         <button 
             type="button" 
             onClick={() => nav("/my-bookings")} 
             style={{ marginLeft: "10px", backgroundColor: "#ccc" }}
+            disabled={!!successMsg}
         >
             Annulla
         </button>
       </form>
 
-      {msg && <p style={{ color: "red", marginTop: "10px" }}>{msg}</p>}
+      {/* messaggio di errore (rosso) */}
+      {errorMsg && <p style={{ color: "red", marginTop: "10px" }}>{errorMsg}</p>}
+
+      {/* messaggio di successo (verde) */}
+      {successMsg && (
+          <p style={{ color: "green", fontWeight: "bold", marginTop: "10px" }}>
+              {successMsg}
+          </p>
+      )}
     </div>
   );
 }

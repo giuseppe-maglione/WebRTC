@@ -1,73 +1,99 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { apiPost } from "../api";
 
 export default function CreateBooking() {
   const nav = useNavigate();
-  const [roomId, setRoomId] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [msg, setMsg] = useState("");   // stato per memorizzare eventuali messaggi di errore restituiti dal server
+  const location = useLocation(); // hook per leggere i dati passati eventualmente da room (state)
+
+  const { preSelectedRoom, preSelectedStart, preSelectedEnd } = location.state || {};
+  // usa i dati precompilati come valori iniziali, altrimenti stringa vuota
+  const [roomId, setRoomId] = useState(preSelectedRoom || "");
+  const [startTime, setStartTime] = useState(preSelectedStart || "");
+  const [endTime, setEndTime] = useState(preSelectedEnd || "");
+
+  const [errorMsg, setErrorMsg] = useState("");   // messaggio rosso (errore)
+  const [successMsg, setSuccessMsg] = useState(""); // messaggio verde (successo)
 
   // funzione asincrona che gestisce l'invio dei dati del form al backend per creare la nuova prenotazione
   const handleCreate = async (e) => {
     e.preventDefault();
 
-    const res = apiPost("/api/crea-prenotazione", { roomId, startTime, endTime });
-    /* COME FACEVAMO PRIMA
-    const res = await fetch("/api/crea-prenotazione", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ roomId, startTime, endTime }),
-    });
-    */
+    // resettiamo i messaggi precedenti
+    setErrorMsg("");
+    setSuccessMsg("");
 
-    const data = await res.json();
+    try {
 
-    if (!res.ok) {
-      setMsg(data.error);
-      return;
+      const data = await apiPost("/api/crea-prenotazione", { roomId, startTime, endTime });
+      // const data = await res.json();
+
+      if (data.error) {
+        setErrorMsg(data.error || "Errore sconosciuto");
+        return;
+      }
+
+      // successo
+      setSuccessMsg("Prenotazione creata con successo! Reindirizzamento...");
+      // attesa di 2 secondi e reindirizzamento
+      setTimeout(() => {
+        nav("/my-bookings"); 
+      }, 2000);
+
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Errore di connessione al server.");
     }
-
-    nav("/dashboard");
   };
 
-  return (
+return (
     <div>
       <h1>Crea nuova prenotazione</h1>
 
       <form onSubmit={handleCreate}>
-        <label>
-          ID Stanza:
-          <input
-            value={roomId}
-            onChange={(e) => setRoomId(e.target.value)}
-          />
-        </label>
+        <div style={{ marginBottom: "10px" }}>
+            <label style={{ display: "block" }}>ID Stanza:</label>
+            <input
+                value={roomId}
+                onChange={(e) => setRoomId(e.target.value)}
+                required
+            />
+        </div>
 
-        <label>
-          Inizio:
-          <input
-            type="datetime-local"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-          />
-        </label>
+        <div style={{ marginBottom: "10px" }}>
+            <label style={{ display: "block" }}>Inizio:</label>
+            <input
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                required
+            />
+        </div>
 
-        <label>
-          Fine:
-          <input
-            type="datetime-local"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-          />
-        </label>
+        <div style={{ marginBottom: "10px" }}>
+            <label style={{ display: "block" }}>Fine:</label>
+            <input
+                type="datetime-local"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                required
+            />
+        </div>
 
-        <button type="submit">Crea</button>
+        <button type="submit" disabled={!!successMsg}>
+            {successMsg ? "Attendi..." : "Crea"}
+        </button>
       </form>
 
-      {msg && <p style={{ color: "red" }}>{msg}</p>}
+      {/* messaggio di errore (rosso) */}
+      {errorMsg && <p style={{ color: "red", marginTop: "10px" }}>{errorMsg}</p>}
+
+      {/* messaggio di successo (verde) */}
+      {successMsg && (
+        <p style={{ color: "green", fontWeight: "bold", marginTop: "10px" }}>
+            {successMsg}
+        </p>
+      )}
     </div>
   );
 }
