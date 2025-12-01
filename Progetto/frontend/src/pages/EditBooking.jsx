@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";    // useParams è un hook utilizzato per estrarre i parametri dinamici dall'URL
+import { useParams, useNavigate } from "react-router-dom";
+import { apiGet, apiPut } from "../api"; 
 
 export default function EditBooking() {
   const { id } = useParams();
@@ -9,81 +10,88 @@ export default function EditBooking() {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [msg, setMsg] = useState("");
-
-  // questo codice prende i dati della prenotazione originale (non quelli modificati)
+  
+  // questo codice prende i dati della prenotazione originale (non quelli modificati) 
   useEffect(() => {
-    // IN FUTURO usare apiGet invece di fetch
-    fetch(`/api/prenotazioni/${id}`, { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => {
-        setBooking(data);
-        setStartTime(data.start_time);
-        setEndTime(data.end_time);
-      });
-  }, []);
+    async function loadData() {
+      try {
+        const res = await apiGet(`/api/prenotazioni/${id}`);
+        const data = res.booking; 
 
-  // conversione formato data per compatibilità backend
-  // rimuove i secondi e sostituisce lo spazio con 'T'
-  const formattedStart = data.start_time.substring(0, 16).replace(' ', 'T');
-  const formattedEnd = data.end_time.substring(0, 16).replace(' ', 'T');
+        if (data) {
+          setBooking(data);
 
-  setStartTime(formattedStart); 
-  setEndTime(formattedEnd); 
-
-  // funzione che gestisce l'invio delle modifiche al server
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-
-    const res = apiPut("/api/prenotazioni/${id}", { startTime, endTime });
-    /* COME FACEVAMO PRIMA
-    const res = await fetch(`/api/prenotazioni/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ startTime, endTime }),
-    });
-    */
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      setMsg(data.error);
-      return;
+          // conversione formato data per compatibilità backend 
+          if (data.start_time) {
+             setStartTime(data.start_time.substring(0, 16).replace(' ', 'T'));
+          }
+          if (data.end_time) {
+             setEndTime(data.end_time.substring(0, 16).replace(' ', 'T'));
+          }
+        }
+      } catch (err) {
+        console.error("Errore caricamento:", err);
+        setMsg("Impossibile caricare la prenotazione.");
+      }
     }
 
-    nav("/dashboard");
+    loadData();
+  }, [id]); // si riattiva solo se cambia l'ID
+
+    // funzione che gestisce l'invio delle modifiche al server
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setMsg(""); // resetta errori precedenti
+
+    const res = await apiPut(`/api/prenotazioni/${id}`, { startTime, endTime });
+
+    if (res.error) {
+      setMsg(res.error);
+    } else {
+      nav("/my-bookings");
+    }
   };
 
   // poiché il caricamento dei dati è asincrono, è necessario mostrare un messaggio di caricamento finché lo stato booking non viene popolato
-  if (!booking) return <p>Caricamento...</p>;
+  if (!booking) return <p>Caricamento in corso...</p>;
 
   return (
     <div>
       <h1>Modifica Prenotazione #{id}</h1>
 
       <form onSubmit={handleUpdate}>
-        <label>
-          Inizio:
+        <div style={{ marginBottom: "10px" }}>
+          <label style={{ display: "block" }}>Inizio:</label>
           <input
             type="datetime-local"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
+            required
           />
-        </label>
+        </div>
 
-        <label>
-          Fine:
+        <div style={{ marginBottom: "10px" }}>
+          <label style={{ display: "block" }}>Fine:</label>
           <input
             type="datetime-local"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
+            required
           />
-        </label>
+        </div>
 
         <button type="submit">Salva modifiche</button>
+        
+        <button 
+            type="button" 
+            onClick={() => nav("/my-bookings")} 
+            style={{ marginLeft: "10px", backgroundColor: "#ccc" }}
+        >
+            Annulla
+        </button>
       </form>
 
-      {msg && <p style={{ color: "red" }}>{msg}</p>}
+      {msg && <p style={{ color: "red", marginTop: "10px" }}>{msg}</p>}
     </div>
   );
 }
