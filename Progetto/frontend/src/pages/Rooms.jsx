@@ -62,7 +62,7 @@ const [start, setStart] = useState("");
             <ul>
                 {rooms.map((r) => (
                     <li key={r.id} style={{ marginBottom: "10px" }}>
-                        <strong>{r.name}</strong> (ID: {r.id}) – {r.location} – cap: {r.capacity}  
+                        <strong>{r.name}</strong> (ID: {r.id}) – {r.location} – capienza: {r.capacity}  
                         <br />
                         {r.available ? (
                             <span style={{ color: "green" }}>Disponibile</span>
