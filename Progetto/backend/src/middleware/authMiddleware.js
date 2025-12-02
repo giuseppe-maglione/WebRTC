@@ -5,25 +5,35 @@ import {userModel} from "../models/userModel.js";
 export const login = async (req, res) => {
     try {
         const { username, password } = req.body;
-        if (!username || !password)
+
+        if (!username || !password) {
             return res.status(400).json({ error: "Inserisci username e password" });
+        }
 
         const user = await userModel.findByUsername(username);
-        if (!user)
-            return res.status(401).json({ error: "Username errato" });
+
+        const genericError = "Credenziali non valide";    // messaggio generico per non rivelare informazioni
+
+        if (!user) {
+            return res.status(401).json({ error: genericError });
+        }
 
         const correct = await bcrypt.compare(password, user.password_hash);
-        if (!correct)
-            return res.status(401).json({ error: "Password errata" });
+
+        if (!correct) {
+            return res.status(401).json({ error: genericError });
+        }
 
         req.session.userId = user.id;
 
         res.json({ message: "Login effettuato", userId: user.id });
+
     } catch (err) {
         console.error("LOGIN ERROR:", err);
         res.status(500).json({ error: "Errore interno server" });
     }
 };
+
 
 // REGISTER
 export const register = async (req, res) => {
