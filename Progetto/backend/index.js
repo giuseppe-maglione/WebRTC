@@ -5,6 +5,9 @@ import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { initDbPool } from "./src/services/db.js";
 import cors from "cors";
+// per https
+import https from "https";
+import fs from "fs";
 
 // Serve a far funzionare __dirname con import ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -21,7 +24,7 @@ const sessionSecret = process.env.SESSION_SECRET || "super-secret-key";
 const port = process.env.BACKEND_PORT || 3000;
 
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://localhost:5173",
     credentials: true
 }));
 
@@ -36,8 +39,9 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: false,     // metti true quando sarai in HTTPS reale
-        maxAge: 1000 * 60 * 60 // 1h
+        secure: true,           // metti true quando sarai in HTTPS reale
+        sameSite: 'none',       // Spesso necessario con secure: true in locale
+        maxAge: 1000 * 60 * 60  // 1h
     }
 }));
 
@@ -59,6 +63,12 @@ app.get("/", (req, res) => {
     res.sendFile(path.resolve(buildPath, "index.html"));
 });
 
-app.listen(port, () => {
-    console.log("Server in ascolto su http://localhost:3000");
+// crea il server https
+const httpsOptions = {
+    key: fs.readFileSync(path.join(__dirname, 'certs', 'server.key')),
+    cert: fs.readFileSync(path.join(__dirname, 'certs', 'server.cert'))
+};
+
+https.createServer(httpsOptions, app).listen(port, () => {
+    console.log(`Server HTTPS in ascolto su https://localhost:${port}`); 
 });
