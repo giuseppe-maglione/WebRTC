@@ -80,15 +80,24 @@ export const requireLogin = (req, res, next) => {
 };
 
 // CHECK IF LOGGED
-export const checkLogged = (req, res) => {
+export const checkLogged = async (req, res) => {
     if (!req.session.userId) {
         return res.json({ loggedIn: false });
     }
 
+    const user = await userModel.findById(req.session.userId);
+        
+    // Se la sessione esiste ma l'utente è stato cancellato dal DB
+    if (!user) {
+        req.session.destroy();
+        return res.json({ loggedIn: false });
+    }
+    
     res.json({
         loggedIn: true,
         user: {
-            id: req.session.userId
+            id: req.session.userId,
+            username: user.username
         }
     });
 };

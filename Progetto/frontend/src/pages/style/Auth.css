@@ -1,0 +1,123 @@
+/* Login.css */
+
+/* Sfondo intera pagina */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom right, #fdfbfb, #ebedee);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+}
+
+/* Card Centrale */
+.auth-card {
+  background: white;
+  padding: 40px;
+  width: 100%;
+  max-width: 400px; /* Larghezza massima */
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05); /* Ombra morbida */
+  text-align: center;
+}
+
+/* Titolo con Gradiente */
+.auth-title {
+  margin-top: 0;
+  margin-bottom: 30px;
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, #FF9A8B 0%, #FF6A88 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; /* Testo colorato */
+}
+
+/* Gruppi di Input */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s;
+  background-color: #f9f9f9;
+  box-sizing: border-box; /* Importante per il padding */
+}
+
+.auth-input:focus {
+  border-color: #FF6A88;
+  box-shadow: 0 0 0 3px rgba(255, 106, 136, 0.1);
+  background-color: white;
+}
+
+/* Bottone */
+.auth-button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  background: linear-gradient(90deg, #FFA07A 0%, #FF6347 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 99, 71, 0.4);
+  transition: transform 0.2s;
+}
+
+.auth-button:hover {
+  transform: translateY(-2px);
+}
+
+.auth-button:active {
+  transform: translateY(0);
+}
+
+/* Messaggio di Errore */
+.auth-error {
+  background-color: #ffebee;
+  color: #d32f2f;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 0.9rem;
+  border: 1px solid #ffcdd2;
+}
+
+/* Link in fondo */
+.auth-footer {
+  margin-top: 25px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.auth-link {
+  color: #FF6A88;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}

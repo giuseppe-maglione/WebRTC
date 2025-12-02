@@ -1,0 +1,137 @@
+/* Navbar.css */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px); /* Effetto vetro */
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* Assicura che stia sopra tutto */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Logo */
+.nav-logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-decoration: none;
+  background: linear-gradient(90deg, #FF9A8B 0%, #FF6A88 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; /* Testo gradiente */
+  letter-spacing: -0.5px;
+}
+
+/* Container dei Link centrali */
+.nav-links {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #555;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: color 0.3s;
+  position: relative;
+}
+
+.nav-link:hover {
+  color: #FF6A88;
+}
+
+/* Effetto sottolineatura animata */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 0;
+  background-color: #FF6A88;
+  transition: width 0.3s;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Sezione Autenticazione (Destra) */
+.nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Pulsante Primario (Crea Prenotazione, Register) */
+.btn-primary {
+  background: linear-gradient(90deg, #FFA07A 0%, #FF6347 100%);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(255, 99, 71, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(255, 99, 71, 0.4);
+}
+
+/* Pulsante Secondario (Login) */
+.btn-secondary {
+  color: #FF6A88;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 8px 15px;
+  border: 2px solid rgba(255, 106, 136, 0.2);
+  border-radius: 25px;
+  transition: all 0.3s;
+  background: transparent;
+}
+
+.btn-secondary:hover {
+  border-color: #FF6A88;
+  background: rgba(255, 106, 136, 0.05);
+}
+
+/* Pulsante Logout */
+.btn-logout {
+  background: transparent;
+  border: 1px solid #ddd;
+  padding: 8px 15px;
+  border-radius: 20px;
+  color: #666;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-logout:hover {
+  background: #f5f5f5;
+  color: #333;
+  border-color: #ccc;
+}
+
+/* User Greeting */
+.user-greeting {
+  font-size: 0.9rem;
+  color: #888;
+  margin-right: 10px;
+  font-weight: 500;
+}

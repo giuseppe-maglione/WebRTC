@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { apiGet, apiPut } from "../api"; 
+import { apiGet, apiPut } from "../api";
+import "./style/CreateBooking.css"; // Riutilizziamo lo stile di creazione
 
 export default function EditBooking() {
   const { id } = useParams();
@@ -10,20 +11,18 @@ export default function EditBooking() {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
-  const [errorMsg, setErrorMsg] = useState("");   // messaggio rosso (errore)
-  const [successMsg, setSuccessMsg] = useState(""); // messaggio verde (successo)
-  
-  // questo codice prende i dati della prenotazione originale (non quelli modificati) 
+  const [errorMsg, setErrorMsg] = useState("");   
+  const [successMsg, setSuccessMsg] = useState(""); 
+   
   useEffect(() => {
     async function loadData() {
       try {
         const res = await apiGet(`/api/prenotazioni/${id}`);
-        const data = res.booking; 
+        const data = res.booking || res; 
 
         if (data) {
           setBooking(data);
-
-          // conversione formato data per compatibilità backend 
+          
           if (data.start_time) {
              setStartTime(data.start_time.substring(0, 16).replace(' ', 'T'));
           }
@@ -37,13 +36,11 @@ export default function EditBooking() {
       }
     }
     loadData();
-  }, [id]); // si riattiva solo se cambia l'ID
+  }, [id]);
 
-  // funzione che gestisce l'invio delle modifiche al server
   const handleUpdate = async (e) => {
     e.preventDefault();
     
-    // resettiamo i messaggi precedenti
     setErrorMsg("");
     setSuccessMsg("");
 
@@ -52,68 +49,84 @@ export default function EditBooking() {
     if (res.error) {
       setErrorMsg(res.error);
     } else {
-      // successo
       setSuccessMsg("Modifica salvata con successo! Reindirizzamento...");      
-      // attesa di 2 secondi e poi reindirizzamento
       setTimeout(() => {
         nav("/my-bookings");
       }, 2000);
     }
   };
 
-  // poiché il caricamento dei dati è asincrono, 
-  // è necessario mostrare un messaggio di caricamento finché lo stato booking non viene popolato
-  if (!booking && !errorMsg) return <p>Caricamento in corso...</p>;
+  if (!booking && !errorMsg) {
+      return (
+        <div className="create-page">
+            <p style={{color: "#666", fontSize: "1.2rem"}}>Caricamento in corso...</p>
+        </div>
+      );
+  }
 
   return (
-    <div>
-      <h1>Modifica Prenotazione #{id}</h1>
-
-      <form onSubmit={handleUpdate}>
-        <div style={{ marginBottom: "10px" }}>
-          <label style={{ display: "block" }}>Inizio:</label>
-          <input
-            type="datetime-local"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            required
-          />
-        </div>
-
-        <div style={{ marginBottom: "10px" }}>
-          <label style={{ display: "block" }}>Fine:</label>
-          <input
-            type="datetime-local"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* disabilita il bottone se c'è un successo in corso */}
-        <button type="submit" disabled={!!successMsg}>
-            {successMsg ? "Salvato!" : "Salva modifiche"}
-        </button>
+    <div className="create-page">
+      <div className="create-card">
         
-        <button 
-            type="button" 
-            onClick={() => nav("/my-bookings")} 
-            style={{ marginLeft: "10px", backgroundColor: "#ccc" }}
-            disabled={!!successMsg}
-        >
-            Annulla
-        </button>
-      </form>
+        <h2 className="form-title">
+            Modifica <span>Prenotazione #{id}</span>
+        </h2>
 
-      {/* messaggio di errore (rosso) */}
-      {errorMsg && <p style={{ color: "red", marginTop: "10px" }}>{errorMsg}</p>}
+        <form onSubmit={handleUpdate} className="booking-form">
+          
+          <div className="form-group">
+            <label>Inizio</label>
+            <input
+              type="datetime-local"
+              className="form-input"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              required
+            />
+          </div>
 
-      {/* messaggio di successo (verde) */}
-      {successMsg && (
-          <p style={{ color: "green", fontWeight: "bold", marginTop: "10px" }}>
-              {successMsg}
-          </p>
-      )}
+          <div className="form-group">
+            <label>Fine</label>
+            <input
+              type="datetime-local"
+              className="form-input"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="btn-container">
+            <button type="submit" className="submit-btn" disabled={!!successMsg}>
+                {successMsg ? "Salvato!" : "Salva modifiche"}
+            </button>
+            
+            <button 
+                type="button" 
+                onClick={() => nav("/my-bookings")} 
+                className="btn-secondary"
+                disabled={!!successMsg}
+            >
+                Annulla
+            </button>
+          </div>
+
+        </form>
+
+        {/* Box Messaggi */}
+        {errorMsg && (
+            <div className="msg-box error">
+                ⚠️ {errorMsg}
+            </div>
+        )}
+
+        {successMsg && (
+            <div className="msg-box success">
+                ✅ {successMsg}
+            </div>
+        )}
+
+      </div>
     </div>
   );
 }

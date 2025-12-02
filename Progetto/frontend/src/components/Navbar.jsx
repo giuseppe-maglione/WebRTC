@@ -1,31 +1,56 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
-// navbar è un componente standard in un'applicazione web che rappresenta la barra di nagivazione
+import "./style/Navbar.css"; // Importa il CSS
 
 export default function Navbar() {
-    const { user, logout } = useAuth();     // prende i valori user e logout dal context
+    const { user, logout } = useAuth();
 
     return (
-        <nav>
-            <Link to="/">Home</Link>
-            <Link to="/rooms">Aule</Link>
+        <nav className="navbar">
+            {/* 1. LOGO */}
+            <Link to="/" className="nav-logo">
+                StudySpace 📚
+            </Link>
 
-            {user && (
-                <>
-                    <Link to="/my-bookings">Le mie prenotazioni</Link>
-                    <Link to="/create-booking">Crea prenotazione</Link>
-                </>
-            )}
+            {/* 2. LINK CENTRALI DI NAVIGAZIONE */}
+            <div className="nav-links">
+                <Link to="/" className="nav-link">Home</Link>
+                <Link to="/rooms" className="nav-link">Aule</Link>
 
-            {user ? (
-                <button onClick={logout}>Logout ({user.username})</button>
-            ) : (
-                <>
-                    <Link to="/login">Login</Link>
-                    <Link to="/register">Registrati</Link>
-                </>
-            )}
+                {user && (
+                    <Link to="/my-bookings" className="nav-link">
+                        Le mie prenotazioni
+                    </Link>
+                )}
+            </div>
+
+            {/* 3. AZIONI UTENTE (DESTRA) */}
+            <div className="nav-auth">
+                {user ? (
+                    <>
+                        {/* Bottone per creare prenotazione in evidenza */}
+                        <Link to="/rooms" className="btn-primary">
+                            + Nuova Prenotazione
+                        </Link>
+                        
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "15px", borderLeft: "1px solid #eee", paddingLeft: "15px" }}>
+                            <span className="user-greeting">Ciao, {user.username}</span>
+                            <button onClick={logout} className="btn-logout">
+                                🚪 Logout
+                            </button>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <Link to="/login" className="btn-secondary">
+                            Login
+                        </Link>
+                        <Link to="/register" className="btn-primary">
+                            Registrati
+                        </Link>
+                    </>
+                )}
+            </div>
         </nav>
     );
 }

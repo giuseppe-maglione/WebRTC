@@ -1,99 +1,183 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiGet } from "../api";
+import "./style/Rooms.css"; 
 
 export default function Rooms() {
     const nav = useNavigate();
-    const [start, setStart] = useState("");
-    const [end, setEnd] = useState("");
-    const [rooms, setRooms] = useState([]);     // array che conterrà l'elenco delle aule restituite dal server
-    const [error, setError] = useState(""); 
+
+    // STATI SEPARATI PER DATA E ORA
+    const [selectedDate, setSelectedDate] = useState("");
+    const [startTime, setStartTime] = useState("");
+    const [endTime, setEndTime] = useState("");
+    
+    const [rooms, setRooms] = useState([]);
+    const [error, setError] = useState("");
+    const [searched, setSearched] = useState(false);
 
     async function loadRooms() {
         setError("");
+        setSearched(true); // Imposta che abbiamo provato a cercare
 
-        // validazione frontend
-        if (!start || !end) {
-            setError("Inserisci sia l'orario di inizio che di fine.");
+        // 1. Validazione Campi Vuoti
+        if (!selectedDate || !startTime || !endTime) {
+            setError("Inserisci la data e gli orari di inizio e fine.");
             return;
         }
 
+        // 2. NUOVA VALIDAZIONE: Controllo coerenza orari
+        // Essendo stringhe "HH:MM", possiamo confrontarle direttamente
+        if (startTime >= endTime) {
+            setError("L'orario di inizio deve essere precedente all'orario di fine.");
+            setRooms([]); // Pulisce eventuali risultati precedenti per evitare confusione
+            return;
+        }
+
+        // Combinazione stringhe per creare il formato datetime-local (YYYY-MM-DDTHH:MM)
+        const startFull = `${selectedDate}T${startTime}`;
+        const endFull = `${selectedDate}T${endTime}`;
+
         try {
             const res = await apiGet(
-                `/api/aule-disponibili?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`
+                `/api/aule-disponibili?start=${encodeURIComponent(startFull)}&end=${encodeURIComponent(endFull)}`
             );
-
-            setRooms(res.rooms || []);      // aggiorna lo stato di rooms con l'elenco delle aule restituite dal server
+            
+            const fetchedRooms = res.rooms || [];
+            // Ordina array in base all'ID
+            fetchedRooms.sort((a, b) => a.id - b.id);
+            
+            setRooms(fetchedRooms);
         } catch (err) {
             console.error(err);
             setError("Errore nel caricamento delle aule.");
         }
     }
 
-    // funzione per gestire il click su "Prenota"
     const handleBookClick = (roomId) => {
-        // naviga verso la pagina di creazione passando i dati nello 'state'
+        const startFull = `${selectedDate}T${startTime}`;
+        const endFull = `${selectedDate}T${endTime}`;
+
         nav("/create-booking", {
             state: {
                 preSelectedRoom: roomId,
-                preSelectedStart: start,
-                preSelectedEnd: end
+                preSelectedStart: startFull,
+                preSelectedEnd: endFull
             }
         });
     };
 
+    // Helper per i colori
+    const getCardGradient = (index) => {
+        const gradients = [
+            "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)", // Blue
+            "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)", // Purple
+            "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)", // Green
+            "linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)" // Pink
+        ];
+        return gradients[index % gradients.length];
+    };
+
     return (
-        <div>
-            <h2>Verifica disponibilità aule</h2>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "300px" }}>
-                <label>Data / Ora inizio</label>
-                <input
-                    type="datetime-local"
-                    value={start}
-                    onChange={(e) => setStart(e.target.value)}
-                />
-
-                <label>Data / Ora fine</label>
-                <input
-                    type="datetime-local"
-                    value={end}
-                    onChange={(e) => setEnd(e.target.value)}
-                />
-
-                <button onClick={loadRooms}>Cerca Aule</button>
-
-                {error && <p style={{ color: "red" }}>{error}</p>}
+        <div className="rooms-page">
+            
+            {/* --- HEADER BANNER --- */}
+            <div className="rooms-banner">
+                <h1>🔍 Trova la tua Aula Studio</h1>
             </div>
 
-            <hr />
+            {/* --- SEARCH SECTION --- */}
+            <div className="search-container">
+                <h3 className="search-title">Cerca disponibilità</h3>
+                
+                <div className="search-form">
+                    
+                    {/* 1. INPUT DATA */}
+                    <div className="input-group">
+                        <label>📅 Seleziona Data</label>
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            className="input-field"
+                        />
+                    </div>
 
-            <h3>Risultati</h3>
+                    {/* 2. INPUT ORA INIZIO */}
+                    <div className="input-group">
+                        <label>🕒 Ora Inizio</label>
+                        <input
+                            type="time"
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                            className="input-field"
+                        />
+                    </div>
 
-            {rooms.length === 0 && <p>Nessuna aula trovata (o nessuna ricerca effettuata).</p>}
+                    {/* 3. INPUT ORA FINE */}
+                    <div className="input-group">
+                        <label>🕒 Ora Fine</label>
+                        <input
+                            type="time"
+                            value={endTime}
+                            onChange={(e) => setEndTime(e.target.value)}
+                            className="input-field"
+                        />
+                    </div>
 
-            <ul>
-                {rooms.map((r) => (
-                    <li key={r.id} style={{ marginBottom: "15px", borderBottom: "1px solid #eee", paddingBottom: "10px" }}>
-                        <strong>{r.name}</strong> (ID: {r.id}) – {r.location} – capienza: {r.capacity}  
-                        <br />
-                        
-                        {r.available ? (
-                            <div style={{ marginTop: "5px" }}>
-                                <span style={{ color: "green", fontWeight: "bold", marginRight: "10px" }}>
-                                    Disponibile
-                                </span>
-                                {/* pulsante che appare solo se disponibile */}
-                                <button onClick={() => handleBookClick(r.id)}>
-                                    Prenota questa aula
-                                </button>
+                    {/* Bottone Cerca */}
+                    <button onClick={loadRooms} className="search-button">
+                        Cerca Aule
+                    </button>
+                </div>
+
+                {/* Messaggio di Errore (Rosso) */}
+                {error && <p className="error-msg">{error}</p>}
+            </div>
+
+            {/* --- RESULTS SECTION --- */}
+            <div className="results-container">
+                <h3 className="results-title">✨ Aule Disponibili</h3>
+
+                {searched && rooms.length === 0 && !error && (
+                    <p className="no-result">Nessuna aula trovata per questo orario.</p>
+                )}
+
+                <div className="rooms-grid">
+                    {rooms.map((r, index) => (
+                        <div key={r.id} className="room-card">
+                            <div className="card-header" style={{ background: getCardGradient(index) }}>
+                                <div className="badge-container">
+                                    {r.available ? (
+                                        <span className="badge success">✔ Disponibile</span>
+                                    ) : (
+                                        <span className="badge error">✖ Occupata</span>
+                                    )}
+                                </div>
+                                <h4 className="card-room-code">ID: {r.id}</h4>
                             </div>
-                        ) : (
-                            <span style={{ color: "red" }}>Occupata</span>
-                        )}
-                    </li>
-                ))}
-            </ul>
+
+                            <div className="card-body">
+                                <h3 className="card-title">{r.name}</h3>
+                                <p className="card-detail">📍 {r.location}</p>
+                                <p className="card-detail">👥 Capienza: {r.capacity} persone</p>
+
+                                {r.available ? (
+                                    <button 
+                                        onClick={() => handleBookClick(r.id)} 
+                                        className="book-button"
+                                    >
+                                        Prenota Ora
+                                    </button>
+                                ) : (
+                                    <button disabled className="book-button">
+                                        Non Disponibile
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }
