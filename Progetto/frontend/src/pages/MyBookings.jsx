@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiGet, apiDelete } from "../api";
 import "../style/MyBookings.css";
+import VideoClassroom from "../components/VideoClassroom";
 
 export default function MyBookings() {
     const [list, setList] = useState([]);
+    const [streamingId, setStreamingId] = useState(null);   // id della prenotazione che sta trasmettendo
     
     // messaggi di feedback (verdi -> successo / rosso -> fallimento)
     const [feedback, setFeedback] = useState({ msg: "", type: "" });
@@ -111,27 +113,59 @@ export default function MyBookings() {
 
                             {/* body con dettagli sulla prenotazione */}
                             <div className="booking-body">
-                                <div className="info-row">
-                                    <span className="icon">🗓️</span>
-                                    <span>{formatDate(b.start_time)}</span>
-                                </div>
-                                <div className="info-row">
-                                    <span className="icon">⏰</span>
-                                    <span>
-                                        {formatTime(b.start_time)} ➔ {formatTime(b.end_time)}
-                                    </span>
-                                </div>
+                                
+                                {/* se stream è attiva, mostra il video (per debug), altrimenti i dettagli */}
+                                {streamingId === b.id ? (
+                                    <div className="streaming-active-area" style={{marginBottom: '15px'}}>
+                                        {/* passiamo id e ruolo al componente */}
+                                        <VideoClassroom role="teacher" roomId={b.id} />
+                                        
+                                        <button 
+                                            onClick={() => setStreamingId(null)} 
+                                            className="btn-action" 
+                                            style={{marginTop: '10px', backgroundColor: '#e74c3c', color: 'white', width: '100%'}}
+                                        >
+                                            ⏹ Termina Lezione
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="info-row">
+                                            <span className="icon">🗓️</span>
+                                            <span>{formatDate(b.start_time)}</span>
+                                        </div>
+                                        <div className="info-row">
+                                            <span className="icon">⏰</span>
+                                            <span>
+                                                {formatTime(b.start_time)} ➔ {formatTime(b.end_time)}
+                                            </span>
+                                        </div>
+
+                                        {/* bottone per avviare lo streaming (visibile solo se non attivo) */}
+                                        <div style={{marginTop: '15px', borderTop: '1px solid #eee', paddingTop: '10px'}}>
+                                            <button 
+                                                onClick={() => setStreamingId(b.id)}
+                                                className="btn-action"
+                                                style={{backgroundColor: '#2ecc71', color: 'white', width: '100%', border: 'none', padding: '8px', cursor: 'pointer', borderRadius: '4px'}}
+                                            >
+                                                🎥 Avvia Lezione
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
-                            {/* azioni (modifica, elimina) */}
-                            <div className="booking-actions">
-                                <Link to={`/edit-booking/${b.id}`} className="btn-action btn-edit">
-                                    ✏️ Modifica
-                                </Link>
-                                <button onClick={() => del(b.id)} className="btn-action btn-delete">
-                                    🗑️ Elimina
-                                </button>
-                            </div>
+                            {/* azioni (modifica, elimina) - nascondiamo se in streaming */}
+                            {streamingId !== b.id && (
+                                <div className="booking-actions">
+                                    <Link to={`/edit-booking/${b.id}`} className="btn-action btn-edit">
+                                        ✏️ Modifica
+                                    </Link>
+                                    <button onClick={() => del(b.id)} className="btn-action btn-delete">
+                                        🗑️ Elimina
+                                    </button>
+                                </div>
+                            )}
 
                         </div>
                     ))}
