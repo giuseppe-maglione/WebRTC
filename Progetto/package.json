@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "jquery": "^3.7.1",
-    "webrtc-adapter": "^9.0.3"
-  }
-}

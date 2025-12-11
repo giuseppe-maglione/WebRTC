@@ -9,13 +9,15 @@ const VideoClassroom = ({ role, roomId }) => {
     const audioRef = useRef(null); // per audio
     const videoRef = useRef(null); // per condivisione schermo
     
-    // stati
+    // Stato
     const [hasJoined, setHasJoined] = useState(false);
     const [status, setStatus] = useState("In attesa...");
     const [error, setError] = useState(null);
     const [isAudioActive, setIsAudioActive] = useState(false);      // stato condivisione audio
     const [isScreenSharing, setIsScreenSharing] = useState(false);  // stato condivisione schermo
-    const [isMuted, setIsMuted] = useState(false);                  // stato per mutare il microfono
+    
+    // ✨ NUOVO: Stato per il mute
+    const [isMuted, setIsMuted] = useState(false);
 
     const MY_ROOM_ID = parseInt(roomId);
 
@@ -71,41 +73,8 @@ const VideoClassroom = ({ role, roomId }) => {
             opaqueId: "host-" + Janus.randomString(12),
             success: (pluginHandle) => {
                 roomHandleRef.current = pluginHandle;
-
-                // definizione della richiesta di join
-                const joinRequest = { 
-                    request: "join", 
-                    room: MY_ROOM_ID, 
-                    ptype: "publisher", 
-                    display: "Host" 
-                };
-
-                // prima di fare join, controlliamo se la room esiste già
-                // in caso contrario, la creiamo
-                pluginHandle.send({
-                    message: {
-                        request: "create",
-                        room: MY_ROOM_ID,
-                        permanent: false,
-                        description: "Riunione " + MY_ROOM_ID,
-                        publishers: 6,
-                        is_private: false
-                    },
-                    success: function(result) {
-                        console.log("✅ Stanza creata o verificata:", result);
-                        // stanza creata, si può fare join
-                        pluginHandle.send({ message: joinRequest });
-                    },
-                    error: function(error) {
-                        // se la stanza esite, possiamo fare join
-                        if (error && error.error_code === 486) {
-                            console.log("⚠️ La stanza esiste già, entro comunque...");
-                            pluginHandle.send({ message: joinRequest });
-                        } else {
-                            console.error("❌ Errore creazione stanza:", error);
-                            setError("Impossibile creare la stanza: " + error);
-                        }
-                    }
+                pluginHandle.send({ 
+                    message: { request: "join", room: MY_ROOM_ID, ptype: "publisher", display: "Host" } 
                 });
             },
             error: (err) => setError("Errore plugin: " + err),
@@ -131,7 +100,7 @@ const VideoClassroom = ({ role, roomId }) => {
                 // l'host non ha bisogno di vedere/sentire se stesso qui per ora
                 setIsAudioActive(true);
 
-                // se c'è una traccia video, mostriamo l'anteprima all'host
+                // ✨ NUOVO: Se c'è una traccia video (screen share), mostriamo l'anteprima all'host
                 if (stream.getVideoTracks().length > 0) {
                     if (videoRef.current) {
                         Janus.attachMediaStream(videoRef.current, stream);
@@ -188,14 +157,16 @@ const VideoClassroom = ({ role, roomId }) => {
         });
     };
 
-    // funzione per mutare/smutare il microfono host
+    // ✨ NUOVO: Funzione per Mute/Unmute Mic Host
     const toggleMute = () => {
         if (!roomHandleRef.current) return;
         
         if (isMuted) {
+            // Era muto, ora attiviamo
             roomHandleRef.current.unmuteAudio();
             setIsMuted(false);
         } else {
+            // Era attivo, ora mutiamo
             roomHandleRef.current.muteAudio();
             setIsMuted(true);
         }

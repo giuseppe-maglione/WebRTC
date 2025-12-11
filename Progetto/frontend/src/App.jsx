@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MeetingGuest from "./pages/MeetingGuest";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -23,6 +24,8 @@ export default function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/rooms" element={<Rooms />} />
+
+                    <Route path="/live/room/:roomId" element={<MeetingGuest />} />
 
                     <Route
                         path="/my-bookings"

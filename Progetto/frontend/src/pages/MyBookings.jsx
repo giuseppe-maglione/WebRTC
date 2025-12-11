@@ -4,10 +4,20 @@ import { apiGet, apiDelete } from "../api";
 import "../style/MyBookings.css";
 import VideoClassroom from "../components/VideoClassroom";
 
+// funzione per generare il link della riunione
+function generateHostLink(id) {
+    return `${window.location.origin}/live/room/${id}`;
+}
+
+// funzione che controlla se la prenotazione è attiva ORA
+function isBookingActive(start, end) {
+    const now = new Date();
+    return now >= new Date(start) && now <= new Date(end);
+}
+
 export default function MyBookings() {
     const [list, setList] = useState([]);
-    const [streamingId, setStreamingId] = useState(null);   // id della prenotazione che sta trasmettendo
-    
+    const [streamingId, setStreamingId] = useState(null); // id della prenotazione che sta trasmettendo
     // messaggi di feedback (verdi -> successo / rosso -> fallimento)
     const [feedback, setFeedback] = useState({ msg: "", type: "" });
 
@@ -18,11 +28,10 @@ export default function MyBookings() {
             // le prenotazioni sono ordinate dalla più recente alla più vecchia
             const bookings = res.bookings || [];
             bookings.sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
-            
             setList(bookings);
         } catch (err) {
             console.error(err);
-            setList([]);        // in caso di errore, reset della lista
+            setList([]); // in caso di errore, reset della lista
         }
     }
 
@@ -31,15 +40,13 @@ export default function MyBookings() {
 
         try {
             const res = await apiDelete(`/api/prenotazioni/${id}`);
-            
             if (res.error) {
-                 setFeedback({ msg: res.error, type: "error" });
+                setFeedback({ msg: res.error, type: "error" });
             } else {
-                 load(); 
-                 setFeedback({ msg: "Prenotazione eliminata con successo!", type: "success" });
-                 
-                 // rimuovi messaggio dopo 3 secondi
-                 setTimeout(() => setFeedback({ msg: "", type: "" }), 3000);
+                load();
+                setFeedback({ msg: "Prenotazione eliminata con successo!", type: "success" });
+                // rimuovi messaggio dopo 3 secondi
+                setTimeout(() => setFeedback({ msg: "", type: "" }), 3000);
             }
         } catch (err) {
             console.error(err);
@@ -55,19 +62,19 @@ export default function MyBookings() {
             "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", // Deep Purple
             "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)", // Blue Indigo
             "linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)", // Pink
-            "linear-gradient(135deg, #f6d365 0%, #fda085 100%)"  // Orange
+            "linear-gradient(135deg, #f6d365 0%, #fda085 100%)" // Orange
         ];
         return gradients[index % gradients.length];
     };
 
-    // helper per formattare la data in modo carino per il frontend
+    // helper per formattare la data per il frontend
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('it-IT', { 
-            weekday: 'short', 
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric' 
+        return date.toLocaleDateString('it-IT', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
         });
     };
 
@@ -78,7 +85,6 @@ export default function MyBookings() {
 
     return (
         <div className="bookings-page">
-            
             <div className="bookings-banner">
                 <h1>📅 Le mie Prenotazioni</h1>
             </div>
@@ -95,80 +101,114 @@ export default function MyBookings() {
                 {list.length === 0 && !feedback.msg && (
                     <div className="no-bookings">
                         <p>Non hai ancora effettuato prenotazioni.</p>
-                        <Link to="/rooms" style={{color: "#a18cd1", fontWeight: "bold"}}>Prenota un'aula ora</Link>
+                        <Link to="/rooms" style={{ color: "#a18cd1", fontWeight: "bold" }}>
+                            Prenota un'aula ora
+                        </Link>
                     </div>
                 )}
 
                 <div className="bookings-grid">
-                    {list.map((b, index) => (
-                        <div key={b.id} className="booking-card">
-                            
-                            {/* header Colorato */}
-                            <div className="booking-header" style={{ background: getCardGradient(index) }}>
-                                <div>
-                                    <h3 className="booking-room-title">Aula {b.room_id}</h3> {/* Qui potresti mettere il nome stanza se il backend lo manda */}
-                                </div>
-                                <span className="booking-id">#{b.id}</span>
-                            </div>
+                    {list.map((b, index) => {
 
-                            {/* body con dettagli sulla prenotazione */}
-                            <div className="booking-body">
-                                
-                                {/* se stream è attiva, mostra il video (per debug), altrimenti i dettagli */}
-                                {streamingId === b.id ? (
-                                    <div className="streaming-active-area" style={{marginBottom: '15px'}}>
-                                        {/* passiamo id e ruolo al componente */}
-                                        <VideoClassroom role="teacher" roomId={b.id} />
-                                        
-                                        <button 
-                                            onClick={() => setStreamingId(null)} 
-                                            className="btn-action" 
-                                            style={{marginTop: '10px', backgroundColor: '#e74c3c', color: 'white', width: '100%'}}
-                                        >
-                                            ⏹ Termina Lezione
-                                        </button>
+                        const active = isBookingActive(b.start_time, b.end_time);
+
+                        return (
+                            <div key={b.id} className="booking-card">
+
+                                {/* header Colorato */}
+                                <div className="booking-header" style={{ background: getCardGradient(index) }}>
+                                    <div>
+                                        <h3 className="booking-room-title">Aula {b.room_id}</h3>
                                     </div>
-                                ) : (
-                                    <>
-                                        <div className="info-row">
-                                            <span className="icon">🗓️</span>
-                                            <span>{formatDate(b.start_time)}</span>
-                                        </div>
-                                        <div className="info-row">
-                                            <span className="icon">⏰</span>
-                                            <span>
-                                                {formatTime(b.start_time)} ➔ {formatTime(b.end_time)}
-                                            </span>
-                                        </div>
+                                    <span className="booking-id">#{b.id}</span>
+                                </div>
 
-                                        {/* bottone per avviare lo streaming (visibile solo se non attivo) */}
-                                        <div style={{marginTop: '15px', borderTop: '1px solid #eee', paddingTop: '10px'}}>
-                                            <button 
-                                                onClick={() => setStreamingId(b.id)}
+                                {/* body con dettagli sulla prenotazione */}
+                                <div className="booking-body">
+
+                                    {/* se stream è attiva, mostra il video */}
+                                    {streamingId === b.id ? (
+                                        <div className="streaming-active-area" style={{ marginBottom: "15px" }}>
+                                            {/* HOST = TEACHER */}
+                                            <VideoClassroom role="host" roomId={b.id} />
+                                            <button
+                                                onClick={() => setStreamingId(null)}
                                                 className="btn-action"
-                                                style={{backgroundColor: '#2ecc71', color: 'white', width: '100%', border: 'none', padding: '8px', cursor: 'pointer', borderRadius: '4px'}}
+                                                style={{ marginTop: "10px", backgroundColor: "#e74c3c", color: "white", width: "100%" }}
                                             >
-                                                🎥 Avvia Lezione
+                                                ⏹ Termina Lezione
                                             </button>
                                         </div>
-                                    </>
-                                )}
-                            </div>
+                                    ) : (
+                                        <>
+                                            <div className="info-row">
+                                                <span className="icon">🗓️</span>
+                                                <span>{formatDate(b.start_time)}</span>
+                                            </div>
 
-                            {/* azioni (modifica, elimina) - nascondiamo se in streaming */}
-                            {streamingId !== b.id && (
-                                <div className="booking-actions">
-                                    <Link to={`/edit-booking/${b.id}`} className="btn-action btn-edit">
-                                        ✏️ Modifica
-                                    </Link>
-                                    <button onClick={() => del(b.id)} className="btn-action btn-delete">
-                                        🗑️ Elimina
-                                    </button>
+                                            <div className="info-row">
+                                                <span className="icon">⏰</span>
+                                                <span>
+                                                    {formatTime(b.start_time)} ➔ {formatTime(b.end_time)}
+                                                </span>
+                                            </div>
+
+                                            {/* bottone per avviare lo streaming (solo se attiva ORA) */}
+                                            <div style={{ marginTop: "15px", borderTop: "1px solid #eee", paddingTop: "10px" }}>
+
+                                                {!active && (
+                                                    <button
+                                                        className="btn-action"
+                                                        disabled
+                                                        style={{
+                                                            backgroundColor: "#7f8c8d",
+                                                            color: "white",
+                                                            width: "100%"
+                                                        }}
+                                                    >
+                                                        ⛔ Lezione non attiva
+                                                    </button>
+                                                )}
+
+                                                {active && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setStreamingId(b.id);
+                                                            const link = generateHostLink(b.id);
+                                                            navigator.clipboard.writeText(link);
+                                                            alert("Link per accedere alla riunione (copiato negli appunti): " + link);
+                                                        }}
+                                                        className="btn-action"
+                                                        style={{
+                                                            backgroundColor: "#2ecc71",
+                                                            color: "white",
+                                                            width: "100%"
+                                                        }}
+                                                    >
+                                                        🎥 Avvia Lezione
+                                                    </button>
+                                                )}
+
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
-                            )}
 
-                        </div>
-                    ))}
+                                {/* azioni (modifica, elimina) - nascondiamo se in streaming */}
+                                {streamingId !== b.id && (
+                                    <div className="booking-actions">
+                                        <Link to={`/edit-booking/${b.id}`} className="btn-action btn-edit">
+                                            ✏️ Modifica
+                                        </Link>
+                                        <button onClick={() => del(b.id)} className="btn-action btn-delete">
+                                            🗑️ Elimina
+                                        </button>
+                                    </div>
+                                )}
+
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>

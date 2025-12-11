@@ -1,0 +1,96 @@
+/* VideoClassroom.css */
+
+.vc-container {
+    padding: 20px;
+    font-family: 'Segoe UI', sans-serif;
+    text-align: center;
+    color: #333;
+    background-color: #f4f6f8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.vc-card {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    max-width: 500px;
+    width: 100%;
+    margin-top: 10vh;
+}
+
+.vc-header {
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    background: white;
+    border-radius: 50px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.vc-status-dot {
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.vc-video-container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.vc-video-elem {
+    max-width: 800px;
+    border-radius: 8px;
+    background: black;
+    margin-bottom: 10px;
+}
+
+.vc-controls {
+    margin-top: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.vc-pulse {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #28a745;
+    animation: pulse 2s infinite;
+}
+
+/* Stili Bottoni */
+.vc-btn {
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.1s;
+}
+
+.vc-btn:active {
+    transform: scale(0.98);
+}
+
+.vc-btn-primary { background-color: #007bff; }
+.vc-btn-purple { background-color: #6610f2; }
+.vc-btn-red { background-color: #dc3545; }
+.vc-btn-green { background-color: #28a745; }
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
