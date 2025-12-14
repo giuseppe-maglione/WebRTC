@@ -1,5 +1,9 @@
-# WebRTC
-ue cumpa
+# SpaceHub 💬
+
+**SpaceHub** è un'applicazione web interattiva progettata per la gestione delle prenotazioni delle aule e lo streaming delle riunioni svolte al loro interno.
+Il progetto combina tecnologie di sviluppo web moderne con meccanismi di comunicazione real-time (WebRTC) e integrazione IoT per il controllo accessi fisico.
+
+> 💡 **Nota:** Il progetto con la documentazione completa si trova sul [Repository](https://github.com/WebRTC-Projects-Unina/Rooms_Reservation).
 
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⢠⣿⣄⣤⣤⣤⣤⣼⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀
